@@ -63,16 +63,46 @@ def huffman_encode(data):
     encoded_data = ''.join([codes[symbol] for symbol in data])
     return encoded_data, codes
 
-def huffman_decode(encoded_data, codes):
+def huffman_decode(encoded_data, codes, num_blocks=1024*4):
     """
-    Decode Huffman encoded data.
+    Decode Huffman encoded data for multiple blocks.
     """
+    # Reverse the codes dictionary to map encoded strings back to symbols
     reversed_codes = {v: k for k, v in codes.items()}
+    
+    decoded_blocks = []
     current_code = ""
     decoded_data = []
+    block_count = 0
+    
+    # Decode each bit in the encoded data
     for bit in encoded_data:
         current_code += bit
+        # If current_code matches a code, decode it
         if current_code in reversed_codes:
-            decoded_data.append(reversed_codes[current_code])
+            symbol = reversed_codes[current_code]
+            # Check for the (0, 0) EOB marker only if symbol is a tuple
+            if isinstance(symbol, tuple) and symbol == (0, 0):
+                # Calculate and add trailing zeros to reach 64 elements
+                zeros_needed = 64 - len(decoded_data)
+                decoded_data.extend([0] * zeros_needed)
+                decoded_blocks.append(decoded_data)
+                 # Add completed block
+                decoded_data = []  # Reset for the next block
+                block_count += 1
+                if block_count == num_blocks:
+                    break  # Stop if we reach the desired number of blocks
+            else:
+                 
+                # Add the decoded symbol to the current block
+                decoded_data.append(symbol)
+            
+            # Reset current_code for the next sequence
             current_code = ""
-    return decoded_data
+    
+   
+
+    return decoded_blocks
+
+
+

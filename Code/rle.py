@@ -23,15 +23,35 @@ def run_length_encode(block):
 
 def run_length_decode(dc, rle):
     """
-    Decode run-length encoded data.
+    Decode run-length encoded data into a flat list of exactly 64 coefficients.
     """
-    ac = []
-    for (zeros, coeff) in rle:
-        if (zeros, coeff) == (0, 0):
-            ac.extend([0] * (64 -1 - len(ac)))  # Fill the rest with zeros
-            break
-        ac.extend([0] * zeros)
-        ac.append(coeff)
-    # Ensure the list has exactly 63 AC coefficients
-    ac = ac[:63] + [0]*(63 - len(ac))
-    return [dc] + ac
+    # Start with the DC coefficient
+    coefficients = [dc]
+    
+    for item in rle:
+        # Check if the item is a tuple (run-length encoding of zeros and a non-zero coefficient)
+        if isinstance(item, tuple):
+            zeros, coeff = item
+            # Append the specified number of zeros
+            coefficients.extend([0] * zeros)
+            # Append the coefficient only if it's non-zero (to ensure accurate block size)
+            if coeff != 0:
+                coefficients.append(coeff)
+        else:
+            # If the item is already a scalar, append it directly
+            coefficients.append(item)
+    
+    # Pad or trim the coefficients list to ensure it has exactly 64 elements
+    coefficients = coefficients[:64] + [0] * (64 - len(coefficients))
+
+    # Validation check: Ensure there are no tuples remaining in the output list
+    # for idx, value in enumerate(coefficients):
+    #     if isinstance(value, tuple):
+    #         print(f"Error: Non-scalar value found at index {idx}: {value}")
+    #         raise ValueError(f"Non-scalar value found at index {idx} in coefficients: {value}")
+
+    return coefficients
+
+
+
+
