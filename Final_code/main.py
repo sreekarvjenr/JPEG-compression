@@ -7,6 +7,7 @@ from quantization import quantize, dequantize, STANDARD_LUMINANCE_Q, STANDARD_CH
 from rle import run_length_encode, run_length_decode
 from huffman import huffman_encode, huffman_decode
 import os
+import pickle
 def calculate_compression_ratio(original_image_path, compressed_data):
     # Get the size of the original image
     original_size = os.path.getsize(original_image_path)  # Size in bytes
@@ -122,7 +123,13 @@ def inverse_process_block(encoded_block, codes, quant_table, prev_dc, log_file=N
 
 # ====================== JPEG Compression and Decompression ======================
 
-def jpeg_compress(image_path, log_filename='compression_logs.txt'):
+def save_compressed_data_to_bin(compressed_data, bin_file_path):
+    """Saves the compressed data to a .bin file."""
+    with open(bin_file_path, 'wb') as bin_file:
+        pickle.dump(compressed_data, bin_file)
+    print(f"Compressed data saved to {bin_file_path}")
+
+def jpeg_compress(image_path, bin_file_path, log_filename='compression_logs.txt'):
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError("Image not found or unable to read.")
@@ -163,6 +170,7 @@ def jpeg_compress(image_path, log_filename='compression_logs.txt'):
             log_file.write(f"\nProcessing Cr block {idx+1}/{len(Cr_blocks)}:\n")
             encoded_block, codes, prev_dc = process_block(block, STANDARD_CHROMINANCE_Q, prev_dc, log_file)
             Cr_compressed.append((encoded_block, codes))
+
     compressed_data = {
         'Y': Y_compressed,
         'Cb': Cb_compressed,
@@ -171,10 +179,14 @@ def jpeg_compress(image_path, log_filename='compression_logs.txt'):
         'width': width,
         'log_filename': log_filename  # Include log filename for decompression
     }
+    
+    # Save the compressed data to a .bin file
+    save_compressed_data_to_bin(compressed_data, bin_file_path)
+    
     compression_ratio = calculate_compression_ratio(image_path, compressed_data)
     print(f"Compression Ratio: {compression_ratio:.2f}")
+    
     return compressed_data
-
 def jpeg_decompress(compressed):
     try:
         Y_compressed = compressed['Y']
@@ -236,12 +248,13 @@ if __name__ == "__main__":
     import time
     parser = argparse.ArgumentParser(description='JPEG Compression Pipeline')
     parser.add_argument('input_image', type=str, help='Path to input image')
+    parser.add_argument('output_bin', type=str, help='Path to save the compressed .bin file')
     parser.add_argument('output_image', type=str, help='Path to save the decompressed image')
     args = parser.parse_args()
 
     try:
         start_time = time.time()
-        compressed = jpeg_compress(args.input_image)
+        compressed = jpeg_compress(args.input_image, args.output_bin)
         compressed_time = time.time()
         print(f"Compression completed in {compressed_time - start_time:.2f} seconds.")
         
