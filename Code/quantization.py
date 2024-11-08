@@ -1,7 +1,4 @@
-# quantization.py
 import numpy as np
-
-# Standard JPEG quantization tables
 STANDARD_LUMINANCE_Q = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 14, 19, 26, 58, 60, 55],
@@ -25,13 +22,9 @@ STANDARD_CHROMINANCE_Q = np.array([
 ])
 
 def quantize(block, quant_table):
-    """
-    Quantize an 8x8 DCT block using the provided quantization table.
-    """
-    return np.round(block / quant_table).astype(int)
+    result = np.round(block / quant_table).astype(int)
+    return result
 
 def dequantize(block, quant_table):
-    """
-    Dequantize an 8x8 block using the provided quantization table.
-    """
-    return (block * quant_table).astype(np.float32)
+    result = (block * quant_table).astype(np.float32)
+    return result

@@ -1,20 +1,12 @@
-# utils.py
 import numpy as np
-
 def pad_image(image, block_size=8):
-    """
-    Pads the image so that its dimensions are multiples of block_size.
-    """
     h, w, c = image.shape
-    pad_h = (block_size - (h % block_size)) if (h % block_size) != 0 else 0
-    pad_w = (block_size - (w % block_size)) if (w % block_size) != 0 else 0
+    pad_h = (block_size - (h % block_size)) if (h % block_size)!= 0 else 0
+    pad_w = (block_size - (w % block_size)) if (w % block_size)!= 0 else 0
     padded_image = np.pad(image, ((0, pad_h), (0, pad_w), (0,0)), mode='constant', constant_values=0)
     return padded_image
 
 def block_split(channel, block_size=8):
-    """
-    Splits a single channel into non-overlapping block_size x block_size blocks.
-    """
     h, w = channel.shape
     blocks = []
     for i in range(0, h, block_size):
@@ -24,9 +16,6 @@ def block_split(channel, block_size=8):
     return blocks
 
 def block_merge(blocks, height, width, block_size=8):
-    """
-    Merges 8x8 blocks back into a single channel.
-    """
     channel = np.zeros((height, width), dtype=np.float32)
     blocks_per_row = width // block_size
     for idx, block in enumerate(blocks):
